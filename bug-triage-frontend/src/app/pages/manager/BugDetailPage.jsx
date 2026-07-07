@@ -42,16 +42,16 @@ export default function BugDetailPage() {
         }
     }, [incidentModal.isOpen]);
 
-    const handleAssign = (developerName) => {
-        assignBug(assignModal.bugId, developerName);
-        toast.success(`${assignModal.bugId} assigned to ${developerName}`);
+    const handleAssign = (developerEmail) => {
+        assignBug(assignModal.bugId, developerEmail);
+        toast.success(`${assignModal.bugId} assigned to ${developerEmail}`);
         setAssignModal({ isOpen: false, bugId: null });
         setSearchQuery("");
     };
 
     const filteredDevs = (developers || []).filter(dev => 
         dev.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        (dev.skills && dev.skills.some(s => s.toLowerCase().includes(searchQuery.toLowerCase())))
+        (dev.skills && dev.skills.some(s => (s.skillName || s).toLowerCase().includes(searchQuery.toLowerCase())))
     );
 
     const filteredBugsForDuplicate = (mockBugs || []).filter(b => 
@@ -509,7 +509,7 @@ export default function BugDetailPage() {
                 filteredDevs.map(dev => (
                   <div 
                     key={dev.id || dev.email} 
-                    onClick={() => handleAssign(dev.name)}
+                    onClick={() => handleAssign(dev.email)}
                     className="flex items-center gap-4 p-3 bg-card hover:bg-primary/5 border border-transparent hover:border-primary/20 rounded-lg cursor-pointer transition-all group"
                   >
                     <UserAvatar name={dev.name} size="md" />
@@ -519,8 +519,7 @@ export default function BugDetailPage() {
                     </div>
                     <div className="text-right flex flex-col items-end gap-1">
                       <span className="text-[10px] font-medium bg-blue-100 text-blue-800 px-2.5 py-0.5 rounded-full whitespace-nowrap">
-                        {dev.skills?.slice(0,2).join(", ")}
-                        {dev.skills?.length > 2 && "..."}
+                        {dev.skills?.map(s => s.skillName || s).join(", ")}
                       </span>
                       {dev.currentTasks !== undefined && (
                         <span className="text-[10px] text-muted-foreground whitespace-nowrap">Đang làm: {dev.currentTasks} task</span>

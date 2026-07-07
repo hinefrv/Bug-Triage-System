@@ -104,8 +104,7 @@ public class BugReportService {
                 bugReport.setSimilarityScore(clusterSim);
 
                 // Goi y phan cong
-                // bugReport.setAssignee(suggestAssignee(rawText));
-                bugReport.setAssignee(aiAssignee);
+                bugReport.setAiSuggestedAssignee(aiAssignee);
 
                 // Canh bao khan cap (Webhook)
                 if ("P4".equals(aiSeverity) || "P5".equals(aiSeverity)) {

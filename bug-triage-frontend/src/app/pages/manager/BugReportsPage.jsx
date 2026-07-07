@@ -28,10 +28,15 @@ export default function BugReportsPage() {
             return false;
         if (selectedComponent !== "all" && bug.component !== selectedComponent)
             return false;
-        if (searchQuery &&
-            !bug.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
-            !bug.id.toLowerCase().includes(searchQuery.toLowerCase()))
-            return false;
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase();
+            const matchTitle = bug.title?.toLowerCase().includes(query);
+            const matchId = bug.id?.toLowerCase().includes(query);
+            const matchAssignee = bug.assignee?.toLowerCase().includes(query);
+            if (!matchTitle && !matchId && !matchAssignee) {
+                return false;
+            }
+        }
         return true;
     });
     return (<div className="p-6 space-y-6">
@@ -101,7 +106,7 @@ export default function BugReportsPage() {
       <div className="bg-card rounded-lg border border-border p-4">
         <div className="flex flex-wrap gap-4">
           <div className="flex-1 min-w-[200px]">
-            <input type="text" placeholder="Tìm kiếm lỗi theo ID hoặc tiêu đề..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full px-4 py-2 bg-input-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring"/>
+            <input type="text" placeholder="Tìm kiếm lỗi theo ID, tiêu đề, hoặc tên người phụ trách..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full px-4 py-2 bg-input-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring"/>
           </div>
 
           <div className="flex gap-3 flex-wrap">

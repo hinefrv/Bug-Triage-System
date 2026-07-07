@@ -1,7 +1,8 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { mockBugs, developers } from "../data/mockData";
+import { mockBugs, developers as mockDevelopers } from "../data/mockData";
 import { enrichBugWithCluster } from "../utils/clusterUtils";
 import { createBug as createBugApi, fetchBugs, normalizeBug, severityToPriority, updateBugApi, markAsDuplicateApi, linkToIncidentApi, createIncidentFromClusterApi } from "../api/bugApi";
+import { getDevelopers } from "../api/developerApi";
 
 const BugContext = createContext(null);
 
@@ -11,6 +12,7 @@ function today() {
 
 export function BugProvider({ children }) {
   const [bugs, setBugs] = useState(mockBugs.map(enrichBugWithCluster));
+  const [developers, setDevelopers] = useState(mockDevelopers);
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState("");
   const [usingMockData, setUsingMockData] = useState(true);
@@ -19,12 +21,20 @@ export function BugProvider({ children }) {
     setLoading(true);
     setApiError("");
     try {
-      const data = await fetchBugs();
+      const [data, devData] = await Promise.all([
+        fetchBugs(),
+        getDevelopers().catch(() => null)
+      ]);
+      
       if (data.length > 0) {
         setBugs(data.map(enrichBugWithCluster));
         setUsingMockData(false);
       } else {
         setUsingMockData(true);
+      }
+      
+      if (devData && devData.length > 0) {
+        setDevelopers(devData);
       }
     } catch (error) {
       setApiError(error.message || "Cannot connect to backend API");

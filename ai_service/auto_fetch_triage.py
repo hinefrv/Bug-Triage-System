@@ -29,6 +29,20 @@ def run_auto_triage():
         
     print(f"Tìm thấy {len(issues)} lỗi mới. Đang nhờ AI Server phân loại...")
     
+    # Kết nối DB sớm để lấy profiles và insert sau
+    conn = psycopg2.connect(dbname="bug_triage_db", user="postgres", password="asd123hien", host="localhost", port="5432")
+    cur = conn.cursor()
+
+    # Lấy thông tin kỹ năng của Developer
+    cur.execute("""
+        SELECT d.name, string_agg(s.skill_tag, ' ') 
+        FROM developers d
+        JOIN developer_skills ds ON d.developerid = ds.developer_id
+        JOIN skills s ON ds.skill_id = s.skillid
+        GROUP BY d.name
+    """)
+    dev_profiles = {row[0]: row[1] for row in cur.fetchall() if row[0] and row[1]}
+
     bugs_data = []
     
     for bug in issues:
@@ -47,12 +61,14 @@ def run_auto_triage():
         try:
             ai_res = requests.post("http://127.0.0.1:8000/api/predict", json={
                 "raw_text": raw_text,
-                "developer_profiles": {} # Không có dev profile lúc cào
+                "developer_profiles": dev_profiles
             })
             
             severity_label = "P3"
             cluster_id = -1
             cluster_sim = 0.0
+            ai_assignee = "Unassigned"
+            match_confidence = 0.0
             
             if ai_res.status_code == 200:
                 ai_data = ai_res.json()
@@ -60,22 +76,23 @@ def run_auto_triage():
                     severity_label = ai_data.get("severity", "P3")
                     cluster_id = ai_data.get("cluster_id", -1)
                     cluster_sim = ai_data.get("cluster_similarity", 0.0)
+                    ai_assignee = ai_data.get("assignee", "Unassigned")
+                    match_confidence = ai_data.get("match_confidence", 0.0)
         except Exception:
             severity_label = "P3"
             cluster_id = -1
             cluster_sim = 0.0
+            ai_assignee = "Unassigned"
+            match_confidence = 0.0
                 
         bugs_data.append((
-            ma_bug, tieu_de, mo_ta, raw_text, "NEW", 
-            severity_label, comp_name, cluster_id, cluster_sim
+            ma_bug, tieu_de, mo_ta, raw_text, "Open", 
+            severity_label, comp_name, cluster_id, cluster_sim, ai_assignee, match_confidence
         ))
         
     # Ghi vào DB
-    conn = psycopg2.connect(dbname="bug_triage_db", user="postgres", password="asd123hien", host="localhost", port="5432")
-    cur = conn.cursor()
-    
     insert_query = """
-        INSERT INTO bug_reports (bugid, title, description, raw_text, status, severity_label, component_label, cluster_id, similarity_score)
+        INSERT INTO bug_reports (bugid, title, description, raw_text, status, severity_label, component_label, cluster_id, similarity_score, ai_suggested_assignee, ai_confidence)
         VALUES %s
         ON CONFLICT (bugid) DO NOTHING
     """

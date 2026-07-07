@@ -41,7 +41,7 @@ export default function DevelopersPage() {
                             <div className="flex justify-between text-sm">
                                 <span className="text-muted-foreground">Kỹ năng: </span>
                                 <span className="font-medium text-primary">
-                                    {dev.skills?.length > 0 ? dev.skills.slice(0, 2).map(s => s.skillName).join(', ') + (dev.skills.length > 2 ? '...' : '') : 'Chưa cập nhật'}
+                                    {dev.skills?.length > 0 ? dev.skills.map(s => s.skillName).join(', ') : 'Chưa cập nhật'}
                                 </span>
                             </div>
                             <div className="flex justify-between text-sm mt-2">

@@ -67,15 +67,30 @@ def analyze_bug(bug: BugRequest):
             
         cluster_similarity_score = float(round(cluster_sim * 100, 2))
 
-        # 4. Gợi ý phân công công việc
+        # 4. Phân loại Component trước để lấy Domain Keywords
+        component = predict_component(bug.raw_text)
+        
+        # 5. Gợi ý phân công công việc
         dev_names = list(bug.developer_profiles.keys())
         dev_skill_texts = list(bug.developer_profiles.values())
 
         if not dev_names:
             return {"status": "success", "severity": str(severity_pred), "cluster_id": int(cluster_id), "assignee": "Chua co data"}
 
+        # Bơm thêm từ khóa chuyên môn (Domain Knowledge) vào câu gốc để tăng khả năng mapping
+        domain_keywords = {
+            "Frontend": "react css javascript html ui mobile",
+            "Backend": "java spring nodejs python api",
+            "Database": "sql postgresql mongodb db",
+            "DevOps": "docker aws kubernetes linux server deploy",
+            "Authentication": "java spring security auth",
+            "API": "java spring rest",
+            "Notification": "java spring"
+        }
+        enriched_text = bug.raw_text.lower() + " " + domain_keywords.get(component, "java spring").lower()
+
         # Bo tu dien tam thoi gom ca van ban loi va ky nang Dev
-        corpus = [bug.raw_text.lower()] + [text.lower() for text in dev_skill_texts]
+        corpus = [enriched_text] + [text.lower() for text in dev_skill_texts]
 
         try:
             # Sinh ra ma tran vector tai thoi diem thuc thi
@@ -97,9 +112,6 @@ def analyze_bug(bug: BugRequest):
         except Exception:
             suggested_assignee = "Chua the de xuat"
             match_score = 0.0
-
-        # 5. Phân loại Component
-        component = predict_component(bug.raw_text)
 
         return {
             "status": "success",

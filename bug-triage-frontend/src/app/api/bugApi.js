@@ -59,8 +59,8 @@ export function normalizeBug(raw) {
       severity,
       priority: raw.priority || severityToPriority(severity),
       component,
-      assignee: raw.assignee || "Unassigned",
-      confidence: raw.aiConfidence ?? (raw.clusterId === -1 ? 60 : 86),
+      assignee: raw.aiSuggestedAssignee || raw.assignee || "Unassigned",
+      confidence: raw.aiConfidence != null ? raw.aiConfidence : 86,
       explanation: raw.clusterId === -1
         ? "AI đã xử lý nhưng độ tương đồng quá thấp (<80%), tạm thời đưa vào danh sách chưa phân cụm."
         : "AI service classified this bug based on raw text and developer profiles.",

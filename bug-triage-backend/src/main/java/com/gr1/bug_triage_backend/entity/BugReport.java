@@ -39,6 +39,9 @@ public class BugReport {
 
     private Double aiConfidence;
     private Double similarityScore;
+    
+    @Column(name = "ai_suggested_assignee")
+    private String aiSuggestedAssignee;
 
     @Column(name = "duplicate_of")
     private String duplicateOf;
