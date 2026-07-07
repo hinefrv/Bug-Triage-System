@@ -104,10 +104,18 @@ export function BugProvider({ children }) {
     const bug = bugs.find((item) => item.id === id);
     if (!bug?.aiSuggestion) return;
 
-    const suggestedAssignee =
-      bug.aiSuggestion.assignee === "Unassigned"
+    let suggestedAssignee =
+      bug.aiSuggestion.assignee === "Unassigned" || bug.aiSuggestion.assignee === "Chua the de xuat"
         ? null
         : bug.aiSuggestion.assignee;
+        
+    // Chuyển đổi Tên (do AI dự đoán) sang Email (để Backend API query được)
+    if (suggestedAssignee && !suggestedAssignee.includes("@")) {
+      const dev = developers.find(d => d.name === suggestedAssignee);
+      if (dev) {
+        suggestedAssignee = dev.email;
+      }
+    }
 
     updateBugLocal(id, {
       severity: bug.aiSuggestion.severity,
