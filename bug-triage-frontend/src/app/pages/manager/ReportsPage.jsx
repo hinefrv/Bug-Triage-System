@@ -142,7 +142,11 @@ export default function ReportsPage() {
             </thead>
             <tbody className="bg-card divide-y divide-border">
               {developers.map((dev) => {
-            const performance = (dev.resolvedBugs / (dev.resolvedBugs + dev.inProgress)) * 100;
+            const resolved = dev.resolvedBugs || dev.resolvedBugsCount || 0;
+            const inProg = dev.inProgress || 0;
+            const assignedCount = Array.isArray(dev.assignedBugs) ? dev.assignedBugs.length : (dev.assignedBugs || 0);
+            const performance = (resolved + inProg) > 0 ? (resolved / (resolved + inProg)) * 100 : 0;
+            
             return (<tr key={dev.id} className="hover:bg-muted/50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-3">
@@ -154,19 +158,19 @@ export default function ReportsPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-foreground font-medium">{dev.assignedBugs}</span>
+                      <span className="text-foreground font-medium">{assignedCount}</span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-green-600 font-medium">{dev.resolvedBugs}</span>
+                      <span className="text-green-600 font-medium">{resolved}</span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-yellow-600 font-medium">{dev.inProgress}</span>
+                      <span className="text-yellow-600 font-medium">{inProg}</span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-foreground">{dev.avgResolutionTime}</span>
+                      <span className="text-foreground">{dev.avgResolutionTime || "N/A"}</span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-red-600 font-medium">{dev.criticalBugsHandled}</span>
+                      <span className="text-red-600 font-medium">{dev.criticalBugsHandled || 0}</span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
